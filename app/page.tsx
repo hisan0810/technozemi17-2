@@ -4,6 +4,31 @@ import { useMemo, useState } from 'react'
 
 type Field = '機械' | '情報' | '電気電子' | '土木' | '建築'
 type Step = 0 | 1 | 2 | 3 | 4
+type RouteView = 'choices' | 'repeat' | 'advanced' | 'jobs'
+
+type AdvancedProject = { name: string; description: string; quiz: { q: string; options: string[]; answer: number } }
+
+const advancedProjects: Record<Field, AdvancedProject[]> = {
+  機械: [
+    { name: '水圧ロボットアーム', description: '水圧で動くアームを設計し、力の伝わり方を試す。', quiz: { q: '水圧で力を伝える原理は？', options: ['パスカルの原理', 'オームの法則', '反射の法則'], answer: 0 } },
+    { name: 'リンク機構歩行ロボット', description: 'リンクの組み合わせで歩く動きをつくる。', quiz: { q: 'リンク機構で動きを生み出す考え方は？', options: ['部品同士の連動', '温度の変化', '光の屈折'], answer: 0 } },
+  ],
+  情報: [{ name: 'マリオのゲームプログラミング', description: '歩く、ジャンプする、風船を割るゲームをつくる。', quiz: { q: '風船を割ったときに得点を増やす処理は？', options: ['イベント処理', '電圧変換', '地盤改良'], answer: 0 } }],
+  土木: [
+    { name: 'ダ・ヴィンチの橋', description: '釘や接着剤を使わず、部材の組み合わせで橋をつくる。', quiz: { q: '橋が崩れにくい理由は？', options: ['部材同士が支え合う', '水を吸収する', '電流が流れる'], answer: 0 } },
+    { name: '砂ろ過システム', description: '砂の層を重ねて、水をきれいにする仕組みを考える。', quiz: { q: '砂ろ過で粒を取り除く働きは？', options: ['ろ材のすき間で捕捉する', '水を加熱する', '電気を発生させる'], answer: 0 } },
+  ],
+  電気電子: [{ name: 'センサー付きスマートライト', description: 'センサーとLEDを組み合わせた回路をつくる。', quiz: { q: '明るさを検知する部品は？', options: ['光センサー', '歯車', '梁'], answer: 0 } }],
+  建築: [{ name: '環境配慮型スマートハウス', description: '採光・通風・省エネを組み合わせた住まいを設計する。', quiz: { q: '設計で大切な視点は？', options: ['環境と快適性の両立', '柱をなくすこと', '窓をすべて閉じること'], answer: 0 } }],
+}
+
+const careerDetails: Record<Field, { name: string; description: string }[]> = {
+  機械: [{ name: 'ロボットエンジニア', description: '人を助けるロボットを開発する。' }, { name: '自動車技術者', description: '安全で環境に配慮した移動をつくる。' }, { name: '機械設計エンジニア', description: '製品の構造を考え、形にする。' }],
+  情報: [{ name: 'ソフトウェアエンジニア', description: 'コードでサービスや生活を支える。' }, { name: 'データサイエンティスト', description: 'データ分析で社会課題を解決する。' }, { name: 'AIエンジニア', description: '人工知能で新しい価値を生み出す。' }],
+  電気電子: [{ name: '組込みエンジニア', description: '機器の中で動く制御システムを開発する。' }, { name: '通信技術者', description: '人と情報をつなぐ通信を支える。' }, { name: '電力エンジニア', description: '安定した電気を届ける仕組みを設計する。' }],
+  土木: [{ name: 'インフラエンジニア', description: '道路・橋・上下水道など暮らしの基盤を守る。' }, { name: '環境エンジニア', description: '水や土の環境を守る。' }, { name: '土木設計技術者', description: '災害に強い構造物を計画する。' }],
+  建築: [{ name: '建築家', description: '暮らしと地域の未来を空間として描く。' }, { name: '構造設計者', description: '建物の安全性を計算する。' }, { name: 'まちづくりプランナー', description: '暮らしやすいまちを計画する。' }],
+}
 
 const fields: { name: Field; note: string; topics: { name: string; quiz: { q: string; options: string[]; answer: number } }[]; mark: string; advanced: string }[] = [
   {
@@ -76,6 +101,9 @@ export default function Page() {
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null)
   const [quizCorrect, setQuizCorrect] = useState(false)
   const [route, setRoute] = useState('')
+  const [routeView, setRouteView] = useState<RouteView>('choices')
+  const [advancedProject, setAdvancedProject] = useState(0)
+  const [advancedAnswer, setAdvancedAnswer] = useState<number | null>(null)
   const [job, setJob] = useState('')
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [started, setStarted] = useState(false)
@@ -101,6 +129,9 @@ export default function Page() {
     setQuizAnswer(null)
     setQuizCorrect(false)
     setRoute('')
+    setRouteView('choices')
+    setAdvancedProject(0)
+    setAdvancedAnswer(null)
     setJob('')
     setAnswers({})
     setStarted(false)
@@ -134,6 +165,7 @@ export default function Page() {
     if (quizAnswer === null) return
     const correct = quizAnswer === selectedTopic?.quiz.answer
     setQuizCorrect(correct)
+    if (routeView === 'repeat') setRouteView('choices')
     if (correct) {
       setScore(score + 10)
     }
@@ -142,7 +174,28 @@ export default function Page() {
 
   const handleRouteSelect = (routeValue: string) => {
     setRoute(routeValue)
-    if (routeValue !== 'job') setJob('')
+    if (routeValue === 'another') {
+      setScore((value) => value + 10)
+      setRouteView('repeat')
+    } else if (routeValue === 'advanced') {
+      setAdvancedProject(0)
+      setAdvancedAnswer(null)
+      setRouteView('advanced')
+    } else {
+      setJob('')
+      setRouteView('jobs')
+    }
+  }
+
+  const returnToRouteChoices = () => {
+    setRouteView('choices')
+    setAdvancedAnswer(null)
+  }
+
+  const startAnotherExperience = () => {
+    setTopic('')
+    setUserSelected(false)
+    go(0)
   }
 
   if (result)
@@ -232,17 +285,12 @@ export default function Page() {
           />
         )}
 
-        {step === 2 && (
-          <RouteStep
-            field={field!}
-            topic={topic}
-            route={route}
-            onRouteSelect={handleRouteSelect}
-            job={job}
-            setJob={setJob}
-            onNext={() => go(3)}
-          />
+        {step === 2 && routeView === 'choices' && (
+          <RouteStep field={field!} topic={topic} route={route} onRouteSelect={handleRouteSelect} job={job} setJob={setJob} onNext={() => go(3)} />
         )}
+        {step === 2 && routeView === 'repeat' && <RepeatExperienceStep onBack={returnToRouteChoices} onStart={startAnotherExperience} />}
+        {step === 2 && routeView === 'advanced' && <AdvancedStep field={field!} projectIndex={advancedProject} setProjectIndex={setAdvancedProject} answer={advancedAnswer} setAnswer={setAdvancedAnswer} onBack={returnToRouteChoices} onDone={returnToRouteChoices} />}
+        {step === 2 && routeView === 'jobs' && <CareerStep field={field!} job={job} setJob={setJob} onBack={returnToRouteChoices} onNext={() => { setScore((value) => value + 10); go(3) }} />}
 
         {step === 3 && <SurveyStep answers={answers} setAnswers={setAnswers} onNext={() => setResult(true)} />}
       </section>
@@ -424,7 +472,7 @@ function RouteStep({ field, topic, route, onRouteSelect, job, setJob, onNext }: 
             'さらに応用したものをつくりたい',
             `${field}のさらに難しい課題に挑戦してみる`,
           ],
-          ['job', '技術を使う職業を知りたい', '学んだ先の未来をのぞいてみる'],
+          ['job', '技術を使う職業��知りたい', '学んだ先の未来をのぞいてみる'],
         ].map(([value, title, desc]) => (
           <button
             key={value}
@@ -457,6 +505,21 @@ function RouteStep({ field, topic, route, onRouteSelect, job, setJob, onNext }: 
       </button>
     </div>
   )
+}
+
+function RepeatExperienceStep({ onBack, onStart }: { onBack: () => void; onStart: () => void }) {
+  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03A / TRY AGAIN</span><h2>もう一つ、作品をつくってみよう。</h2><p>すでに1回体験したあなたへ。別の作品にも挑戦して、興味の幅を広げます。</p></div><div className="branch-callout"><b>意欲度 +10</b><span>新しい分野への挑戦を評価します。</span></div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button><button className="primary-action" onClick={onStart}>別の作品を選ぶ <span>→</span></button></div></div>
+}
+
+function AdvancedStep({ field, projectIndex, setProjectIndex, answer, setAnswer, onBack, onDone }: any) {
+  const projects = advancedProjects[field]
+  const project = projects[projectIndex]
+  const submitted = answer !== null
+  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03B / ADVANCED WORK</span><h2>{field}の応用工作に挑戦。</h2><p>選んだ分野の発展テーマをつくり、応用クイズに答えます。</p></div><div className="advanced-project"><span className="section-kicker">PROJECT {String(projectIndex + 1).padStart(2, '0')}</span><h3>{project.name}</h3><p>{project.description}</p><div className="build-animation"><div className="build-parts"><span>設計</span><span>試作</span><span>検証</span></div></div><h4>{project.quiz.q}</h4><div className="quiz-options">{project.quiz.options.map((option: string, index: number) => <button key={option} className={`quiz-option ${answer === index ? 'chosen' : ''} ${submitted && index === project.quiz.answer ? 'correct' : ''}`} onClick={() => !submitted && setAnswer(index)} disabled={submitted}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}</div>{submitted && <div className="quiz-feedback"><p>{answer === project.quiz.answer ? <><b>正解！</b> 応用への理解が深まりました。</> : <>正解は「{project.quiz.options[project.quiz.answer]}」です。</>}</p></div>}</div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button>{!submitted ? <button className="primary-action" disabled={answer === null} onClick={() => setAnswer(answer)} >応用クイズを確認 <span>→</span></button> : projectIndex < projects.length - 1 ? <button className="primary-action" onClick={() => { setProjectIndex(projectIndex + 1); setAnswer(null) }}>次の応用へ <span>→</span></button> : <button className="primary-action" onClick={onDone}>ステップ3へ戻る <span>→</span></button>}</div></div>
+}
+
+function CareerStep({ field, job, setJob, onBack, onNext }: any) {
+  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03C / CAREERS</span><h2>{field}の技術が社会で活きる仕事。</h2><p>興味を持った職業を選ぶと、ものづくり・社会貢献への関心として記録されます。</p></div><div className="career-grid">{careerDetails[field].map((career) => <button key={career.name} className={`career-card ${job === career.name ? 'chosen' : ''}`} onClick={() => setJob(career.name)}><b>{career.name}</b><span>{career.description}</span></button>)}</div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button><button className="primary-action" disabled={!job} onClick={onNext}>適性アンケートへ <span>→</span></button></div></div>
 }
 
 function SurveyStep({ answers, setAnswers, onNext }: any) {
