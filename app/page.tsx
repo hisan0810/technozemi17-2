@@ -87,7 +87,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
 ]
 
 const jobs: Record<Field, string[]> = {
-  機械: ['機械設計エンジニア', 'ロボット開発者', '自動���技術者'],
+  機械: ['機械設計エンジニア', 'ロボット開発者', '自動�����技術者'],
   情報: ['ソフトウェアエンジニア', 'ゲームプログラマー', 'AIエンジニア'],
   電気電子: ['電気主任技術者', '組込みエンジニア', '通信技術者'],
   土木: ['土木設計技術者', '建設プロジェクト管理', '環境エンジニア'],
@@ -144,10 +144,16 @@ export default function Page() {
   const handleFieldSelect = (fieldName: Field) => {
     setField(fieldName)
     setTopic('')
+    setQuizAnswer(null)
+    setQuizCorrect(false)
+    setBuildingComplete(false)
   }
 
   const handleTopicSelect = (topicName: string) => {
     setTopic(topicName)
+    setQuizAnswer(null)
+    setQuizCorrect(false)
+    setBuildingComplete(false)
     setUserSelected(true)
   }
 
@@ -156,6 +162,9 @@ export default function Page() {
     const random = allTopics[Math.floor(Math.random() * allTopics.length)]
     setField(random.field as Field)
     setTopic(random.topic)
+    setQuizAnswer(null)
+    setQuizCorrect(false)
+    setBuildingComplete(false)
     setUserSelected(false)
     setScore(score)
     setTimeout(() => go(1), 600)
@@ -193,7 +202,16 @@ export default function Page() {
   }
 
   const startAnotherExperience = () => {
+    // 二周目は新しいテーマのクイズを未回答状態から開始する。
+    // 総合スコア(score)はここでは変更せず、これまでの加点を保持する。
     setTopic('')
+    setQuizAnswer(null)
+    setQuizCorrect(false)
+    setBuildingComplete(false)
+    setAdvancedAnswer(null)
+    setAdvancedProject(0)
+    setRoute('')
+    setRouteView('choices')
     setUserSelected(false)
     go(0)
   }
