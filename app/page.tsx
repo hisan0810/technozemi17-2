@@ -87,7 +87,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
 ]
 
 const jobs: Record<Field, string[]> = {
-  機械: ['機械設計エンジニア', 'ロボット開発者', '自動車技術者'],
+  機械: ['機械設計エンジニア', 'ロボット開発者', '自動���技術者'],
   情報: ['ソフトウェアエンジニア', 'ゲームプログラマー', 'AIエンジニア'],
   電気電子: ['電気主任技術者', '組込みエンジニア', '通信技術者'],
   土木: ['土木設計技術者', '建設プロジェクト管理', '環境エンジニア'],
@@ -511,11 +511,10 @@ function RepeatExperienceStep({ onBack, onStart }: { onBack: () => void; onStart
   return <div className="step-card"><div className="step-heading"><span className="section-kicker">03A / TRY AGAIN</span><h2>もう一つ、作品をつくってみよう。</h2><p>すでに1回体験したあなたへ。別の作品にも挑戦して、興味の幅を広げます。</p></div><div className="branch-callout"><b>意欲度 +10</b><span>新しい分野への挑戦を評価します。</span></div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button><button className="primary-action" onClick={onStart}>別の作品を選ぶ <span>→</span></button></div></div>
 }
 
-function AdvancedStep({ field, projectIndex, setProjectIndex, answer, setAnswer, onBack, onDone }: any) {
+function AdvancedStep({ field, projectIndex, setProjectIndex, onBack, onDone }: any) {
   const projects = advancedProjects[field]
   const project = projects[projectIndex]
-  const submitted = answer !== null
-  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03B / ADVANCED WORK</span><h2>{field}の応用工作に挑戦。</h2><p>選んだ分野の発展テーマをつくり、応用クイズに答えます。</p></div><div className="advanced-project"><span className="section-kicker">PROJECT {String(projectIndex + 1).padStart(2, '0')}</span><h3>{project.name}</h3><p>{project.description}</p><div className="build-animation"><div className="build-parts"><span>設計</span><span>試作</span><span>検証</span></div></div><h4>{project.quiz.q}</h4><div className="quiz-options">{project.quiz.options.map((option: string, index: number) => <button key={option} className={`quiz-option ${answer === index ? 'chosen' : ''} ${submitted && index === project.quiz.answer ? 'correct' : ''}`} onClick={() => !submitted && setAnswer(index)} disabled={submitted}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}</div>{submitted && <div className="quiz-feedback"><p>{answer === project.quiz.answer ? <><b>正解！</b> 応用への理解が深まりました。</> : <>正解は「{project.quiz.options[project.quiz.answer]}」です。</>}</p></div>}</div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button>{!submitted ? <button className="primary-action" disabled={answer === null} onClick={() => setAnswer(answer)} >応用クイズを確認 <span>→</span></button> : projectIndex < projects.length - 1 ? <button className="primary-action" onClick={() => { setProjectIndex(projectIndex + 1); setAnswer(null) }}>次の応用へ <span>→</span></button> : <button className="primary-action" onClick={onDone}>ステップ3へ戻る <span>→</span></button>}</div></div>
+  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03B / ADVANCED WORK</span><h2>{field}の応用作品をつくろう。</h2><p>実際に作品を設計・制作・検証してみます。</p></div><div className="advanced-project"><span className="section-kicker">MAKE {String(projectIndex + 1).padStart(2, '0')}</span><h3>{project.name}</h3><p>{project.description}</p><div className="build-animation"><div className="build-parts"><span>設計</span><span>制作</span><span>検証</span></div></div><div className="build-checklist"><b>制作ステップ</b><span>1. つくりたい仕組みをスケッチする</span><span>2. 身近な材料で作品を組み立てる</span><span>3. 動かして、工夫した点を記録する</span></div><div className="build-note"><b>できたらチェック</b><p>作品を実際につくってみたら、次へ進みましょう。</p></div></div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button>{projectIndex < projects.length - 1 ? <button className="primary-action" onClick={() => setProjectIndex(projectIndex + 1)}>次の応用作品へ <span>→</span></button> : <button className="primary-action" onClick={onDone}>作品をつくった <span>→</span></button>}</div></div>
 }
 
 function CareerStep({ field, job, setJob, onBack, onNext }: any) {
