@@ -106,7 +106,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
 ]
 
 const jobs: Record<Field, string[]> = {
-  機械: ['機械設計エンジニア', 'ロボット開発者', '自動���������技術者'],
+  機械: ['機械設計エンジニア', 'ロボット開発者', '自動�����������技術者'],
   情報: ['ソフトウェアエンジニア', 'ゲームプログラマー', 'AIエンジニア'],
   電気電子: ['電気主任技術者', '組込みエンジニア', '通信技術者'],
   土木: ['土木設計技術者', '建設プロジェクト管理', '環境エンジニア'],
@@ -496,6 +496,197 @@ function ExperienceQuizStep({
   )
 }
 
+type SlotId = 'top' | 'right' | 'bottom' | 'left'
+type PartId = 'battery' | 'switch' | 'led' | 'wire'
+
+const circuitParts: { id: PartId; label: string }[] = [
+  { id: 'battery', label: '電池' },
+  { id: 'switch', label: 'スイッチ' },
+  { id: 'led', label: 'LEDライト' },
+  { id: 'wire', label: '導線' },
+]
+
+const slotConfig: { id: SlotId; expect: PartId; role: string; cls: string }[] = [
+  { id: 'top', expect: 'battery', role: '電源', cls: 'slot-top' },
+  { id: 'right', expect: 'switch', role: 'スイッチ', cls: 'slot-right' },
+  { id: 'bottom', expect: 'led', role: 'ライト', cls: 'slot-bottom' },
+  { id: 'left', expect: 'wire', role: 'もどりの線', cls: 'slot-left' },
+]
+
+function PartIcon({ id, lit }: { id: PartId; lit?: boolean }) {
+  const common = {
+    className: 'part-glyph',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  if (id === 'battery')
+    return (
+      <svg {...common} aria-hidden="true">
+        <rect x="3" y="8" width="14" height="8" rx="1" />
+        <line x1="20" y1="10.5" x2="20" y2="13.5" />
+        <line x1="7" y1="10.5" x2="7" y2="13.5" />
+        <line x1="11" y1="10.5" x2="11" y2="13.5" />
+      </svg>
+    )
+  if (id === 'switch')
+    return (
+      <svg {...common} aria-hidden="true">
+        <circle cx="5" cy="17" r="1.6" />
+        <circle cx="19" cy="17" r="1.6" />
+        <line x1="5" y1="17" x2={lit ? '19' : '16'} y2={lit ? '17' : '7'} />
+      </svg>
+    )
+  if (id === 'led')
+    return (
+      <svg {...common} aria-hidden="true">
+        <circle cx="12" cy="11" r="4.5" />
+        <line x1="10" y1="18" x2="14" y2="18" />
+        <line x1="10.5" y1="20" x2="13.5" y2="20" />
+        {lit && (
+          <g strokeWidth="1.6">
+            <line x1="12" y1="1.5" x2="12" y2="3" />
+            <line x1="3.5" y1="4.5" x2="4.8" y2="5.6" />
+            <line x1="20.5" y1="4.5" x2="19.2" y2="5.6" />
+            <line x1="1.5" y1="12" x2="3" y2="12" />
+            <line x1="22.5" y1="12" x2="21" y2="12" />
+          </g>
+        )}
+      </svg>
+    )
+  return (
+    <svg {...common} aria-hidden="true">
+      <circle cx="4" cy="12" r="1.6" />
+      <circle cx="20" cy="12" r="1.6" />
+      <path d="M5.6 12h12.8" />
+    </svg>
+  )
+}
+
+function CircuitBuilder({ onComplete }: { onComplete: () => void }) {
+  const [placements, setPlacements] = useState<Record<SlotId, PartId | null>>({
+    top: null,
+    right: null,
+    bottom: null,
+    left: null,
+  })
+  const [selected, setSelected] = useState<PartId | null>(null)
+  const [switchOn, setSwitchOn] = useState(false)
+
+  const placedIds = Object.values(placements).filter(Boolean) as PartId[]
+  const tray = circuitParts.filter((p) => !placedIds.includes(p.id))
+  const allFilled = slotConfig.every((s) => placements[s.id])
+  const allCorrect = slotConfig.every((s) => placements[s.id] === s.expect)
+  const lit = allCorrect && switchOn
+
+  useEffect(() => {
+    if (!lit) return
+    const timer = setTimeout(onComplete, 2200)
+    return () => clearTimeout(timer)
+  }, [lit, onComplete])
+
+  const pickPart = (id: PartId) => {
+    if (allCorrect) return
+    setSelected((prev) => (prev === id ? null : id))
+  }
+
+  const dropOnSlot = (slotId: SlotId) => {
+    if (allCorrect) {
+      if (slotId === 'right') setSwitchOn((on) => !on)
+      return
+    }
+    if (selected) {
+      setPlacements((p) => ({ ...p, [slotId]: selected }))
+      setSelected(null)
+    } else if (placements[slotId]) {
+      setPlacements((p) => ({ ...p, [slotId]: null }))
+      setSwitchOn(false)
+    }
+  }
+
+  let status = { text: '部品をすべて置いて、回路を1つの輪につなげよう。', cls: '' }
+  if (lit) status = { text: '正解！ スイッチが入って LED が光った！', cls: 'win' }
+  else if (allCorrect) status = { text: '回路が完成！ スイッチを入れてみよう。', cls: 'ok' }
+  else if (allFilled) status = { text: 'うまくつながっていないみたい。部品の場所を見直そう。', cls: 'warn' }
+
+  return (
+    <div className="circuit-panel">
+      <span className="completion-badge">CIRCUIT LAB</span>
+      <h3>回路をつないで、明かりをつけよう</h3>
+      <p className="circuit-lead">部品を選んで、正しい場所に置こう。電源 → スイッチ → ライト → もどりの線で輪になります。</p>
+
+      <div className={`circuit-stage ${lit ? 'lit' : ''}`}>
+        <svg className="loop" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <rect className="loop-wire" x="6" y="6" width="88" height="88" rx="14" />
+          <rect className="loop-flow" x="6" y="6" width="88" height="88" rx="14" />
+        </svg>
+
+        {slotConfig.map((slot) => {
+          const part = placements[slot.id]
+          const isWrong = allFilled && !allCorrect && part !== slot.expect
+          const isSwitchReady = allCorrect && !switchOn && slot.id === 'right'
+          const isLedLit = lit && slot.id === 'bottom'
+          const partMeta = part ? circuitParts.find((p) => p.id === part) : null
+          return (
+            <button
+              key={slot.id}
+              type="button"
+              className={`slot ${slot.cls} ${part ? 'filled' : ''} ${isWrong ? 'error' : ''} ${
+                isSwitchReady ? 'switch-ready' : ''
+              } ${isLedLit ? 'led-lit' : ''}`}
+              onClick={() => dropOnSlot(slot.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropOnSlot(slot.id)}
+              aria-label={partMeta ? `${slot.role}の位置: ${partMeta.label}` : `${slot.role}の位置: 空き`}
+            >
+              {part ? (
+                <>
+                  <PartIcon id={part} lit={part === 'switch' ? switchOn : isLedLit} />
+                  <b>{partMeta?.label}</b>
+                </>
+              ) : (
+                <span className="slot-role">{slot.role}</span>
+              )}
+            </button>
+          )
+        })}
+
+        <div className="circuit-center">{lit ? '電流が流れています' : allCorrect ? 'スイッチON待ち' : '部品を配置'}</div>
+      </div>
+
+      <div className="circuit-tray">
+        {tray.length === 0 ? (
+          <span className="tray-empty">すべての部品を置きました</span>
+        ) : (
+          tray.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`tray-part ${selected === p.id ? 'picked' : ''}`}
+              onClick={() => pickPart(p.id)}
+              draggable
+              onDragStart={() => setSelected(p.id)}
+            >
+              <PartIcon id={p.id} />
+              {p.label}
+            </button>
+          ))
+        )}
+      </div>
+
+      <p className={`circuit-status ${status.cls}`}>{status.text}</p>
+      <p className="circuit-hint">
+        {allCorrect
+          ? '右のスイッチをクリックすると、電気が流れます。'
+          : '部品をクリックして選び、置きたい場所をクリック。置いた部品はもう一度クリックで戻せます。'}
+      </p>
+    </div>
+  )
+}
+
 function RouteStep({ field, topic, route, onRouteSelect, job, setJob, onNext }: any) {
   const selected = fields.find((f) => f.name === field)
 
@@ -557,7 +748,7 @@ function RepeatExperienceStep({ onBack, onStart }: { onBack: () => void; onStart
 function AdvancedStep({ field, projectIndex, setProjectIndex, onBack, onDone }: any) {
   const projects = advancedProjects[field]
   const project = projects[projectIndex]
-  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03B / ADVANCED WORK</span><h2>{field}の応用作品をつくろう。</h2><p>実際���作品を設計・制作・検証してみます。</p></div><div className="advanced-project"><span className="section-kicker">MAKE {String(projectIndex + 1).padStart(2, '0')}</span><h3>{project.name}</h3><p>{project.description}</p><div className="build-animation"><div className="build-parts"><span>設計</span><span>制作</span><span>検証</span></div></div><div className="build-checklist"><b>制作ステップ</b><span>1. つくりたい仕組みをスケッチする</span><span>2. 身近な材料で作品を組み立てる</span><span>3. 動かして、工夫した点を記録する</span></div><div className="build-note"><b>できたらチェック</b><p>作品を実際につくってみたら、次へ進みましょう。</p></div></div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button>{projectIndex < projects.length - 1 ? <button className="primary-action" onClick={() => setProjectIndex(projectIndex + 1)}>次の応用作品へ <span>→</span></button> : <button className="primary-action" onClick={onDone}>作品をつくった <span>→</span></button>}</div></div>
+  return <div className="step-card"><div className="step-heading"><span className="section-kicker">03B / ADVANCED WORK</span><h2>{field}の応用作品をつくろ���。</h2><p>実際���作品を設計・制作・検証してみます。</p></div><div className="advanced-project"><span className="section-kicker">MAKE {String(projectIndex + 1).padStart(2, '0')}</span><h3>{project.name}</h3><p>{project.description}</p><div className="build-animation"><div className="build-parts"><span>設計</span><span>制作</span><span>検証</span></div></div><div className="build-checklist"><b>制作ステップ</b><span>1. つくりたい仕組みをスケッチする</span><span>2. 身近な材料で作品を組み立てる</span><span>3. 動かして、工夫した点を記録する</span></div><div className="build-note"><b>できたらチェック</b><p>作品を実際につくってみたら、次へ進みましょう。</p></div></div><div className="branch-actions"><button className="secondary-action" onClick={onBack}>選択肢に戻る</button>{projectIndex < projects.length - 1 ? <button className="primary-action" onClick={() => setProjectIndex(projectIndex + 1)}>次の応用作品へ <span>→</span></button> : <button className="primary-action" onClick={onDone}>作品をつくった <span>→</span></button>}</div></div>
 }
 
 function CareerStep({ field, job, setJob, onBack, onNext }: any) {
