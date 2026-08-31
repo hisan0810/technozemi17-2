@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { EvolutionGame } from '@/components/evolution-game'
 
-type Field = '機械' | '情報' | '電気電子' | '土木' | '建築'
+type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物'
 type Step = 0 | 1 | 2 | 3 | 4
 type RouteView = 'choices' | 'repeat' | 'advanced' | 'jobs'
 
@@ -20,6 +21,7 @@ const advancedProjects: Record<Field, AdvancedProject[]> = {
   ],
   電気電子: [{ name: 'センサー付きスマートライト', description: 'センサーとLEDを組み合わせた回路をつくる。', quiz: { q: '明るさを検知する部品は？', options: ['光センサー', '歯車', '梁'], answer: 0 } }],
   建築: [{ name: '環境配慮型スマートハウス', description: '採光・通風・省エネを組み合わせた住まいを設計する。', quiz: { q: '設計で大切な視点は？', options: ['環境と快適性の両立', '柱をなくすこと', '窓をすべて閉じること'], answer: 0 } }],
+  生物: [{ name: '培地でつくるバイオアート', description: '寒天培地に微生物を植え付け、色や模様の変化を観察する。', quiz: { q: '微生物の変化を観察するときに大切な条件は？', options: ['適切な温度と栄養の管理', '常に暗闇にすること', '毎日水没させること'], answer: 0 } }],
 }
 
 const careerDetails: Record<Field, { name: string; description: string }[]> = {
@@ -28,6 +30,7 @@ const careerDetails: Record<Field, { name: string; description: string }[]> = {
   電気電子: [{ name: '組込みエンジニア', description: '機器の中で動く制御システムを開発する。' }, { name: '通信技術者', description: '人と情報をつなぐ通信を支える。' }, { name: '電力エンジニア', description: '安定した電気を届ける仕組みを設計する。' }],
   土木: [{ name: 'インフラエンジニア', description: '道路・橋・上下水道など暮らしの基盤を守る。' }, { name: '環境エンジニア', description: '水や土の環境を守る。' }, { name: '土木設計技術者', description: '災害に強い構造物を計画する。' }],
   建築: [{ name: '建築家', description: '暮らしと地域の未来を空間として描く。' }, { name: '構造設計者', description: '建物の安全性を計算する。' }, { name: 'まちづくりプランナー', description: '暮らしやすいまちを計画する。' }],
+  生物: [{ name: 'バイオテクノロジー研究者', description: '遺伝子や細胞を扱い、医療や農業に役立つ技術を開発する。' }, { name: '生命科学系エンジニア', description: '生物データを解析し、新しい診断・治療法の基盤をつくる。' }, { name: '環境保全スペシャリスト', description: '生態系を調査し、多様な生物が共存できる環境を守る。' }],
 }
 
 const fields: { name: Field; note: string; topics: { name: string; quiz: { q: string; options: string[]; answer: number } }[]; mark: string; advanced: string }[] = [
@@ -84,6 +87,22 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     mark: '05',
     advanced: 'スマートビル設計',
   },
+  {
+    name: '生物',
+    note: '生命の仕組みをさぐる',
+    topics: [
+      {
+        name: '進化シミュレーター',
+        quiz: {
+          q: '氷河期を生き残ったのは「毛がフサフサ」な個体でした。このように環境に適した形質を持つ個体が生き残りやすい仕組みを何と呼びますか？',
+          options: ['自然選択（自然淘汰）', '人工繁殖', '突然変異のみ'],
+          answer: 0,
+        },
+      },
+    ],
+    mark: '06',
+    advanced: '培地でつくるバイオアート',
+  },
 ]
 
 const jobs: Record<Field, string[]> = {
@@ -92,6 +111,7 @@ const jobs: Record<Field, string[]> = {
   電気電子: ['電気主任技術者', '組込みエンジニア', '通信技術者'],
   土木: ['土木設計技術者', '建設プロジェクト管理', '環境エンジニア'],
   建築: ['建築家', '構造設計者', 'まちづくりプランナー'],
+  生物: ['バイオ研究者', '医療系エンジニア', '環境保全スペシャリスト'],
 }
 
 export default function Page() {
@@ -388,6 +408,7 @@ function ExperienceQuizStep({
   const selected = fields.find((f) => f.name === field)
   const selectedTopic = selected?.topics.find((t) => t.name === topic)
   const quiz = selectedTopic?.quiz
+  const isEvolutionSimulator = field === '生物' && topic === '進化シミュレーター'
 
   const handleBuild = () => {
     setBuildingComplete(false)
@@ -405,21 +426,25 @@ function ExperienceQuizStep({
       </div>
 
       {!buildingComplete ? (
-        <div className="experience-box">
-          <div className="build-section">
-            <h3>つくってみよう！</h3>
-            <div className="build-animation">
-              <div className="build-parts">
-                <span>01</span>
-                <span>02</span>
-                <span>03</span>
+        isEvolutionSimulator ? (
+          <EvolutionGame standalone={false} onCleared={() => setBuildingComplete(true)} />
+        ) : (
+          <div className="experience-box">
+            <div className="build-section">
+              <h3>つくってみよう！</h3>
+              <div className="build-animation">
+                <div className="build-parts">
+                  <span>01</span>
+                  <span>02</span>
+                  <span>03</span>
+                </div>
               </div>
+              <button className="build-btn" onClick={handleBuild}>
+                {topic} をつくる
+              </button>
             </div>
-            <button className="build-btn" onClick={handleBuild}>
-              {topic} をつくる
-            </button>
           </div>
-        </div>
+        )
       ) : (
         <div className="quiz-box">
           <div className="completion-badge">✨ 完成！</div>
