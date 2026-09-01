@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
 import CodeRunner from '@/components/code-runner'
 
-type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物'
+type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物' | '化学'
 type Step = 0 | 1 | 2 | 3 | 4
 type RouteView = 'choices' | 'repeat' | 'advanced' | 'jobs'
 
@@ -23,6 +23,10 @@ const advancedProjects: Record<Field, AdvancedProject[]> = {
   電気電子: [{ name: 'センサー付きスマートライト', description: 'センサーとLEDを組み合わせた回路をつくる。', quiz: { q: '明るさを検知する部品は？', options: ['光センサー', '歯車', '梁'], answer: 0 } }],
   建築: [{ name: '環境配慮型スマートハウス', description: '採光・通風・省エネを組み合わせた住まいを設計する。', quiz: { q: '設計で大切な視点は？', options: ['環境と快適性の両立', '柱をなくすこと', '窓をすべて閉じること'], answer: 0 } }],
   生物: [{ name: '培地でつくるバイオアート', description: '寒天培地に微生物を植え付け、色や模様の変化を観察する。', quiz: { q: '微生物の変化を観察するときに大切な条件は？', options: ['適切な温度と栄養の管理', '常に暗闇にすること', '毎日水没させること'], answer: 0 } }],
+  化学: [
+    { name: 'カラフル発泡入浴剤', description: '重曹とクエン酸を混ぜ、水に入れると発泡する入浴剤をつくる。', quiz: { q: '重曹とクエン酸が反応して発生する気体は？', options: ['二酸化炭素', '酸素', '水素'], answer: 0 } },
+    { name: '紫キャベツpH指示薬', description: '紫キャベツの煮汁で、身近な液体の酸性・アルカリ性を色で調べる。', quiz: { q: '指示薬の色で調べられるのは液体の何ですか？', options: ['酸性・アルカリ性の強さ', '温度', '重さ'], answer: 0 } },
+  ],
 }
 
 const careerDetails: Record<Field, { name: string; description: string }[]> = {
@@ -32,6 +36,7 @@ const careerDetails: Record<Field, { name: string; description: string }[]> = {
   土木: [{ name: 'インフラエンジニア', description: '道路・橋・上下水道など暮らしの基盤を守る。' }, { name: '環境エンジニア', description: '水や土の環境を守る。' }, { name: '土木設計技術者', description: '災害に強い構造物を計画する。' }],
   建築: [{ name: '建築家', description: '暮らしと地域の未来を空間として描く。' }, { name: '構造設計者', description: '建物の安全性を計算する。' }, { name: 'まちづくりプランナー', description: '暮らしやすいまちを計画する。' }],
   生物: [{ name: 'バイオテクノロジー研究者', description: '遺伝子や細胞を扱い、医療や農業に役立つ技術を開発する。' }, { name: '生命科学系エンジニア', description: '生物データを解析し、新しい診断・治療法の基盤をつくる。' }, { name: '環境保全スペシャリスト', description: '生態系を調査し、多様な生物が共存できる環境を守る。' }],
+  化学: [{ name: '化学プラントエンジニア', description: '素材や薬品を安全につくる製造工程を設計する。' }, { name: '材料研究者', description: '新しい機能を持つ素材や電池を開発する。' }, { name: '環境分析技術者', description: '水や大気の成分を分析し、環境を守る。' }],
 }
 
 const fields: { name: Field; note: string; topics: { name: string; quiz: { q: string; options: string[]; answer: number } }[]; mark: string; advanced: string }[] = [
@@ -80,7 +85,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     topics: [
       { name: '夢のマイハウス', quiz: { q: '快適な家を設計するには、採光と通風を考えることが大切です。これは何に関係しますか？', options: ['環境設計', '力学', '化学変化'], answer: 0 } },
       { name: 'ジオデシック・ドーム', quiz: { q: 'ドーム型構造は、なぜ安定しているのでしょう？', options: ['形全体で荷重を分散', '材料が特殊', '重さがない'], answer: 0 } },
-      { name: 'シェードランプ', quiz: { q: 'ランプのデザインで最も大切な機能は？', options: ['光の広がり方', '色の美しさ', '材料の価格'], answer: 0 } },
+      { name: 'シェードランプ', quiz: { q: 'ランプのデザインで最も大切な機能は？', options: ['光の広��り方', '色の美しさ', '材料の価格'], answer: 0 } },
       { name: 'ミニコンクリート', quiz: { q: 'コンクリートの強度は、「セメント」「砂」「石」の混合比で変わります。これは何の学習に近いですか？', options: ['化学反応', '物理変化', 'エネルギー'], answer: 0 } },
       { name: '紙の高層ビル', quiz: { q: '紙でビルを建てるとき、最も工夫が必要な部分は？', options: ['柱の設計（構造）', '壁の色', '窓の配置'], answer: 0 } },
       { name: '暑くならない家', quiz: { q: '夏に家を涼しく保つための重要な工夫は？', options: ['通風と遮光', 'ペンキの色', '家の大きさ'], answer: 0 } },
@@ -104,6 +109,16 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     mark: '06',
     advanced: '培地でつくるバイオアート',
   },
+  {
+    name: '化学',
+    note: '物質の変化を確かめる',
+    topics: [
+      { name: '色が変わる水溶液', quiz: { q: 'BTB溶液は、アルカリ性の水溶液に入れると何色になりますか？', options: ['青色', '黄色', '赤色'], answer: 0 } },
+      { name: 'ぷるぷるスライム', quiz: { q: '液体どうしが反応し、分子が鎖のようにつながって固まる仕組みを何といいますか？', options: ['高分子（ポリマー）反応', '燃焼反応', '蒸発'], answer: 0 } },
+    ],
+    mark: '07',
+    advanced: 'カラフル発泡入浴剤',
+  },
 ]
 
 const jobs: Record<Field, string[]> = {
@@ -113,6 +128,7 @@ const jobs: Record<Field, string[]> = {
   土木: ['土木設計技術者', '建設プロジェクト管理', '環境エンジニア'],
   建築: ['建築家', '構造設計者', 'まちづくりプランナー'],
   生物: ['バイオ研究者', '医療系エンジニア', '環境保全スペシャリスト'],
+  化学: ['化学プラントエンジニア', '材料研究者', '環境分析技術者'],
 }
 
 export default function Page() {
@@ -437,6 +453,8 @@ function ExperienceQuizStep({
           />
         ) : field === '電気電子' && topic === 'スイッチで電気をつける' ? (
           <CircuitBuilder onComplete={() => setBuildingComplete(true)} />
+        ) : field === '化学' && topic === '色が変わる水溶液' ? (
+          <MixLab onComplete={() => setBuildingComplete(true)} />
         ) : (
           <div className="experience-box">
             <div className="build-section">
@@ -696,6 +714,101 @@ function CircuitBuilder({ onComplete }: { onComplete: () => void }) {
   )
 }
 
+type LiquidState = 'neutral' | 'acid' | 'base'
+type ReagentId = 'acid' | 'salt' | 'base'
+
+const reagents: { id: ReagentId; label: string; nature: string; result: LiquidState }[] = [
+  { id: 'acid', label: '塩酸', nature: '酸性', result: 'acid' },
+  { id: 'salt', label: '食塩水', nature: '中性', result: 'neutral' },
+  { id: 'base', label: '水酸化ナトリウム', nature: 'アルカリ性', result: 'base' },
+]
+
+const liquidReading: Record<LiquidState, string> = {
+  neutral: '中性（緑）',
+  acid: '酸性（黄）',
+  base: 'アルカリ性（青）',
+}
+
+function FlaskIcon() {
+  return (
+    <svg className="part-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 3h6" />
+      <path d="M10 3v6l-4.5 8a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9V3" />
+      <path d="M7 15h10" />
+    </svg>
+  )
+}
+
+function MixLab({ onComplete }: { onComplete: () => void }) {
+  const [liquid, setLiquid] = useState<LiquidState>('neutral')
+  const [poured, setPoured] = useState<ReagentId | null>(null)
+  const success = liquid === 'base'
+
+  useEffect(() => {
+    if (!success) return
+    const timer = setTimeout(onComplete, 2200)
+    return () => clearTimeout(timer)
+  }, [success, onComplete])
+
+  const pour = (r: { id: ReagentId; result: LiquidState }) => {
+    if (success) return
+    setPoured(r.id)
+    setLiquid(r.result)
+  }
+
+  let status = { text: 'ビーカーは中性で緑色。試薬を加えてアルカリ性にしよう。', cls: '' }
+  if (success) status = { text: '正解！ アルカリ性になって、青色に変わった！', cls: 'win' }
+  else if (liquid === 'acid') status = { text: '酸性になって黄色に。別の試薬を試そう。', cls: 'warn' }
+
+  return (
+    <div className="circuit-panel">
+      <span className="completion-badge">MIX LAB</span>
+      <h3>試薬を混ぜて、色を変えよう</h3>
+      <p className="circuit-lead">BTB溶液を入れたビーカーです。試薬を選んで加えると、酸性・中性・アルカリ性で色が変わります。青色（アルカリ性）を目指そう。</p>
+
+      <div className="mix-stage">
+        <div className={`beaker ${liquid} ${success ? 'success' : ''}`}>
+          <div className="beaker-neck" />
+          <div className="beaker-body">
+            <span className="beaker-liquid" />
+            {(liquid === 'acid' || success) && (
+              <span className="beaker-bubbles">
+                <i /><i /><i /><i />
+              </span>
+            )}
+          </div>
+        </div>
+        <p className="mix-reading">
+          いまの液性：<b>{liquidReading[liquid]}</b>
+        </p>
+      </div>
+
+      <div className="circuit-tray">
+        {reagents.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            className={`tray-part ${poured === r.id ? 'picked' : ''}`}
+            onClick={() => pour(r)}
+            disabled={success}
+          >
+            <FlaskIcon />
+            {r.label}
+            <small className="reagent-nature">{r.nature}</small>
+          </button>
+        ))}
+      </div>
+
+      <p className={`circuit-status ${status.cls}`}>{status.text}</p>
+      <p className="circuit-hint">
+        {success
+          ? 'アルカリ性の水溶液がBTB溶液を青く変えました。'
+          : '試薬をクリックすると、ビーカーに加わって色が変化します。何度でも試せます。'}
+      </p>
+    </div>
+  )
+}
+
 function RouteStep({ field, topic, route, onRouteSelect, job, setJob, onNext }: any) {
   const selected = fields.find((f) => f.name === field)
 
@@ -790,7 +903,7 @@ function SurveyStep({ answers, setAnswers, onNext }: any) {
             <b>{q}</b>
             <div className="answer-buttons">
               {(i === 0
-                ? ['機械', '情報', '電気回路', '土木', '建築']
+                ? ['機械', '情報', '電気回路', '土木', '建築', '生物', '化学']
                 : i === 6
                   ? ['はい', 'いいえ', 'どちらでもない']
                   : ['はい', 'いいえ']
