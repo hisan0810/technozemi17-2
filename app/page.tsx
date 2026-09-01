@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
+import CodeRunner from '@/components/code-runner'
 
 type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物'
 type Step = 0 | 1 | 2 | 3 | 4
@@ -425,9 +426,15 @@ function ExperienceQuizStep({
         </p>
       </div>
 
-      {!buildingComplete ? (
+        {!buildingComplete ? (
         isEvolutionSimulator ? (
           <EvolutionGame standalone={false} onCleared={() => setBuildingComplete(true)} />
+        ) : field === '情報' ? (
+          <CodeRunner
+            standalone={false}
+            initialStage={topic === 'マリオをジャンプさせよう' ? 1 : 0}
+            onComplete={() => setBuildingComplete(true)}
+          />
         ) : field === '電気電子' && topic === 'スイッチで電気をつける' ? (
           <CircuitBuilder onComplete={() => setBuildingComplete(true)} />
         ) : (
