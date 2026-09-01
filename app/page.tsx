@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
 
 type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物'
@@ -335,7 +335,7 @@ export default function Page() {
 
       <footer>
         <span>TECH QUEST / TOKUYAMA COLLEGE OF TECHNOLOGY</span>
-        <span>あなたの可能性を、技術に。</span>
+        <span>あ���たの可能性を、技術に。</span>
       </footer>
     </main>
   )
@@ -428,6 +428,8 @@ function ExperienceQuizStep({
       {!buildingComplete ? (
         isEvolutionSimulator ? (
           <EvolutionGame standalone={false} onCleared={() => setBuildingComplete(true)} />
+        ) : field === '電気電子' && topic === 'スイッチで電気をつける' ? (
+          <CircuitBuilder onComplete={() => setBuildingComplete(true)} />
         ) : (
           <div className="experience-box">
             <div className="build-section">
