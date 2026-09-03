@@ -130,6 +130,60 @@ footer { border-top: 1px solid var(--border); padding: 22px 0; display: flex; ju
 .evo-embedded-clear { max-width: 560px; margin: 0 auto; text-align: center; padding: 48px 24px; background: var(--card); border: 1px solid var(--border); }
 .evo-embedded-clear .evo-icon-big { font-size: 52px; }
 .evo-embedded-clear h3 { font-size: 22px; margin: 14px 0 10px; }
+
+/* --- LAB NOTE (chemistry route /chemistry) --- */
+.lab-content { padding: 34px 0 90px; }
+.lab-progress { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .14em; font-weight: 800; color: #9aa39e; margin-bottom: 34px; }
+.lab-progress .active { color: var(--primary); }
+.lab-progress i { font-style: normal; color: var(--border); }
+
+.lab-page { display: flex; flex-direction: column; gap: 34px; }
+.lab-heading h1 { font-size: clamp(32px, 4.4vw, 56px); line-height: 1.12; letter-spacing: -.04em; margin: 6px 0 16px; font-weight: 800; }
+.lab-heading h1 em { font-style: normal; color: var(--primary); }
+.lab-heading p { color: var(--muted); font-size: 14px; line-height: 1.8; margin: 0; }
+
+.lab-layout { display: grid; grid-template-columns: 340px 1fr; gap: 28px; align-items: start; }
+
+.liquid-shelf { background: var(--card); border: 1px solid var(--border); padding: 22px; }
+.liquid-list { display: flex; flex-direction: column; gap: 12px; }
+.liquid-card { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; background: var(--background); border: 1px solid var(--border); transition: border-color .2s ease, transform .1s ease; }
+.liquid-card:hover { border-color: var(--primary); }
+.liquid-card.selected { border-color: var(--primary); background: var(--soft); }
+.liquid-card .liquid-swatch { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(0,0,0,.08); }
+.liquid-card span:not(.liquid-swatch) { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.liquid-card strong { font-size: 14px; }
+.liquid-card small { color: var(--muted); font-size: 11px; }
+.liquid-card svg { color: var(--muted); flex-shrink: 0; }
+
+.beaker-stage { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 30px 24px; background: var(--card); border: 1px solid var(--border); }
+.stage-label { align-self: flex-start; font-size: 10px; letter-spacing: .16em; font-weight: 800; color: var(--accent); }
+.beaker-stage h2 { font-size: 22px; letter-spacing: -.02em; margin: 6px 0 0; text-align: center; }
+.stage-note { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; margin: 0; }
+.stage-note svg { color: var(--accent); }
+
+.beaker { position: relative; width: 150px; height: 168px; border: 3px solid var(--primary); border-top: 0; border-radius: 0 0 26px 26px; background: var(--card); overflow: hidden; }
+.beaker-line { position: absolute; top: 42%; left: 0; right: 0; height: 1px; background: var(--border); }
+.beaker .liquid { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--soft); transition: height .5s ease, background .5s ease; }
+.beaker-lemon .liquid { height: 60%; background: #de5962; }
+.beaker-soap .liquid { height: 60%; background: #9bd03f; }
+.beaker-fizz .liquid { height: 60%; background: #e5a13b; }
+.beaker .bubbles { position: absolute; inset: 0; }
+.beaker .bubbles i { position: absolute; bottom: 8%; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.78); left: calc(10% + (var(--i) * 7%)); animation: labRise 1.5s ease-in infinite; animation-delay: calc(var(--i) * .1s); }
+@keyframes labRise { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
+
+.note-page { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.note-page h1 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1.18; letter-spacing: -.03em; margin: 0; font-weight: 800; }
+.note-page h1 em { font-style: normal; color: var(--primary); }
+.note-page > p { color: var(--muted); font-size: 14px; line-height: 1.9; margin: 0; }
+.answer-list { display: flex; flex-direction: column; gap: 12px; }
+.answer { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; padding: 16px 18px; background: var(--card); border: 1px solid var(--border); font-size: 14px; transition: border-color .2s ease; }
+.answer:hover { border-color: var(--primary); }
+.answer.selected { border-color: var(--primary); background: var(--soft); color: var(--primary); font-weight: 700; }
+.answer svg { color: var(--primary); flex-shrink: 0; }
+.result-page { text-align: center; align-items: center; padding-top: 20px; }
+.result-icon { width: 66px; height: 66px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent); color: var(--accent); border-radius: 50%; }
+
+@media (max-width: 760px) { .lab-layout { grid-template-columns: 1fr; } }
 .evo-embedded-clear p { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 0 0 24px; }
 
 @media (max-width: 700px) { .creature-pond { max-height: 300px; } .evo-victory { padding: 60px 18px; } .evo-victory h1 { font-size: 30px; } }
