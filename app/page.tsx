@@ -54,8 +54,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     name: '情報',
     note: 'コードで世界を動かす',
     topics: [
-      { name: 'マリオを5歩歩かせよう', quiz: { q: 'マリオを5歩歩かせるには、同じ動作を5回「（　）」することが重要です。', options: ['繰り返す', '変える', '待つ'], answer: 0 } },
-      { name: 'マリオをジャンプさせよう', quiz: { q: 'プログラムで「もしジャンプキーが押されたら、上に移動する」という考え方は？', options: ['条件分岐', '繰り返し', '関数'], answer: 0 } },
+      { name: '簡単なプログラミングをしてみよう', quiz: { q: 'マリオを5歩歩かせるには、同じ動作を5回「（　）」することが重要です。', options: ['繰り返す', '変える', '待つ'], answer: 0 } },
     ],
     mark: '02',
     advanced: 'ゲーム画面設計',
@@ -448,7 +447,7 @@ function ExperienceQuizStep({
         ) : field === '情報' ? (
           <CodeRunner
             standalone={false}
-            initialStage={topic === 'マリオをジャンプさせよう' ? 1 : 0}
+            initialStage={0}
             onComplete={() => setBuildingComplete(true)}
           />
         ) : field === '電気電子' && topic === 'スイッチで電気をつける' ? (
