@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
 import CodeRunner from '@/components/code-runner'
 
@@ -112,7 +112,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     name: '化学',
     note: '物質の変化を確かめる',
     topics: [
-      { name: '色が変わる水溶液', quiz: { q: 'BTB溶液は、アルカリ性の水溶液に入れると何色になりますか？', options: ['青色', '黄色', '赤色'], answer: 0 } },
+      { name: '色が変わる水溶液', quiz: { q: '重曹とクエン酸を混ぜると泡が出たのはなぜ？', options: ['気体（二酸化炭素）が発生したから', '液体が温められて蒸発したから', '色素が光で分解されたから'], answer: 0 } },
       { name: 'ぷるぷるスライム', quiz: { q: '液体どうしが反応し、分子が鎖のようにつながって固まる仕組みを何といいますか？', options: ['高分子（ポリマー）反応', '燃焼反応', '蒸発'], answer: 0 } },
     ],
     mark: '07',
@@ -706,104 +706,73 @@ function CircuitBuilder({ onComplete }: { onComplete: () => void }) {
       <p className={`circuit-status ${status.cls}`}>{status.text}</p>
       <p className="circuit-hint">
         {allCorrect
-          ? '右のスイッチをクリックすると、電気が流れます。'
+          ? '右のスイッチをクリック���ると、電気が流れます。'
           : '部品をクリックして選び、置きたい場所をクリック。置いた部品はもう一度クリックで戻せます。'}
       </p>
     </div>
   )
 }
 
-type LiquidState = 'neutral' | 'acid' | 'base'
-type ReagentId = 'acid' | 'salt' | 'base'
+type Liquid = 'lemon' | 'soap' | 'fizz'
 
-const reagents: { id: ReagentId; label: string; nature: string; result: LiquidState }[] = [
-  { id: 'acid', label: '塩酸', nature: '酸性', result: 'acid' },
-  { id: 'salt', label: '食塩水', nature: '中性', result: 'neutral' },
-  { id: 'base', label: '水酸化ナトリウム', nature: 'アルカリ性', result: 'base' },
+const liquids: { id: Liquid; label: string; note: string; color: string; result: string }[] = [
+  { id: 'lemon', label: 'レモン汁', note: '酸性の液体', color: '#de5962', result: '鮮やかな赤色に変化！' },
+  { id: 'soap', label: '石鹸水', note: 'アルカリ性の液体', color: '#9bd03f', result: '怪しい緑色に変化！' },
+  { id: 'fizz', label: '重曹＋クエン酸', note: '泡が出る組み合わせ', color: '#e5a13b', result: 'シュワシュワ泡が発生！' },
 ]
 
-const liquidReading: Record<LiquidState, string> = {
-  neutral: '中性（緑）',
-  acid: '酸性（黄）',
-  base: 'アルカリ性（青）',
-}
-
-function FlaskIcon() {
-  return (
-    <svg className="part-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 3h6" />
-      <path d="M10 3v6l-4.5 8a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 9V3" />
-      <path d="M7 15h10" />
-    </svg>
-  )
-}
-
 function MixLab({ onComplete }: { onComplete: () => void }) {
-  const [liquid, setLiquid] = useState<LiquidState>('neutral')
-  const [poured, setPoured] = useState<ReagentId | null>(null)
-  const success = liquid === 'base'
-
-  useEffect(() => {
-    if (!success) return
-    const timer = setTimeout(onComplete, 2200)
-    return () => clearTimeout(timer)
-  }, [success, onComplete])
-
-  const pour = (r: { id: ReagentId; result: LiquidState }) => {
-    if (success) return
-    setPoured(r.id)
-    setLiquid(r.result)
-  }
-
-  let status = { text: 'ビーカーは中性で緑色。試薬を加えてアルカリ性にしよう。', cls: '' }
-  if (success) status = { text: '正解！ アルカリ性になって、青色に変わった！', cls: 'win' }
-  else if (liquid === 'acid') status = { text: '酸性になって黄色に。別の試薬を試そう。', cls: 'warn' }
+  const [selected, setSelected] = useState<Liquid | null>(null)
+  const current = liquids.find((l) => l.id === selected)
 
   return (
     <div className="circuit-panel">
       <span className="completion-badge">MIX LAB</span>
-      <h3>試薬を混ぜて、色を変えよう</h3>
-      <p className="circuit-lead">BTB溶液を入れたビーカーです。試薬を選んで加えると、酸性・中性・アルカリ性で色が変わります。青色（アルカリ性）を目指そう。</p>
+      <h3>A液とB液を混ぜろ！</h3>
+      <p className="circuit-lead">棚からB液をひとつ選んでビーカーへ注ごう。色や泡の変化をよく観察してみて。</p>
 
-      <div className="mix-stage">
-        <div className={`beaker ${liquid} ${success ? 'success' : ''}`}>
-          <div className="beaker-neck" />
-          <div className="beaker-body">
-            <span className="beaker-liquid" />
-            {(liquid === 'acid' || success) && (
-              <span className="beaker-bubbles">
-                <i /><i /><i /><i />
-              </span>
-            )}
+      <div className="lab-layout">
+        <div className="liquid-shelf">
+          <p className="section-kicker">SHELF / B LIQUIDS</p>
+          <div className="liquid-list">
+            {liquids.map((liquid) => (
+              <button
+                key={liquid.id}
+                type="button"
+                className={`liquid-card ${selected === liquid.id ? 'selected' : ''}`}
+                onClick={() => setSelected(liquid.id)}
+              >
+                <span className="liquid-swatch" style={{ backgroundColor: liquid.color }} />
+                <span>
+                  <strong>{liquid.label}</strong>
+                  <small>{liquid.note}</small>
+                </span>
+                <span>→</span>
+              </button>
+            ))}
           </div>
         </div>
-        <p className="mix-reading">
-          いまの液性：<b>{liquidReading[liquid]}</b>
-        </p>
-      </div>
 
-      <div className="circuit-tray">
-        {reagents.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            className={`tray-part ${poured === r.id ? 'picked' : ''}`}
-            onClick={() => pour(r)}
-            disabled={success}
-          >
-            <FlaskIcon />
-            {r.label}
-            <small className="reagent-nature">{r.nature}</small>
+        <div className={`beaker-stage ${selected ? 'has-liquid' : ''}`} aria-live="polite">
+          <span className="stage-label">BEAKER / A LIQUID</span>
+          <div className={`beaker ${selected ? `beaker-${selected}` : ''}`}>
+            <div className="beaker-line" />
+            <div className="liquid" />
+            {selected === 'fizz' && (
+              <div className="bubbles">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <i key={index} style={{ ['--i']: index } as CSSProperties} />
+                ))}
+              </div>
+            )}
+          </div>
+          <h2>{current ? current.result : '液体を選んでビーカーに注ぐ'}</h2>
+          <p className="stage-note">変化を観察しよう</p>
+          <button className="primary-action" disabled={!selected} onClick={onComplete}>
+            観察メモを書く <span>→</span>
           </button>
-        ))}
+        </div>
       </div>
-
-      <p className={`circuit-status ${status.cls}`}>{status.text}</p>
-      <p className="circuit-hint">
-        {success
-          ? 'アルカリ性の水溶液がBTB溶液を青く変えました。'
-          : '試薬をクリックすると、ビーカーに加わって色が変化します。何度でも試せます。'}
-      </p>
     </div>
   )
 }
