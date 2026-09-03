@@ -310,17 +310,20 @@ export default function CodeRunner({
   // ---- Embedded mode (used inside TECH QUEST 情報 experience) ----
   if (!standalone) {
     if (cleared) {
+      const isFinalStage = stage === 2
       return (
         <div className="rounded-xl border border-border bg-card p-8 text-center">
           <Trophy className="mx-auto mb-3 text-accent" size={38} />
           <p className="font-mono text-[11px] font-semibold tracking-widest text-accent">MISSION COMPLETE</p>
           <h3 className="mt-2 text-xl font-bold">クリア！おめでとう！</h3>
-          <p className="mt-2 text-sm text-muted-foreground">コードが正しく実行されました。</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isFinalStage ? 'すべてのステージをクリアしました！' : 'コードが正しく実行されました。'}
+          </p>
           <button
-            onClick={() => onComplete?.()}
+            onClick={() => (isFinalStage ? onComplete?.() : next())}
             className="mx-auto mt-6 flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground"
           >
-            クイズに進む <ChevronRight size={17} />
+            {isFinalStage ? '数学や理科の問題に進む' : '次のステージへ進む'} <ChevronRight size={17} />
           </button>
         </div>
       )
