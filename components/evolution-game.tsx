@@ -150,7 +150,7 @@ export function EvolutionGame({
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [dyingIds, setDyingIds] = useState<Set<number>>(new Set())
   const [phase, setPhase] = useState<Phase>('breeding')
-  const [outcome, setOutcome] = useState<'clear' | 'fail' | null>(null)
+  const [outcome, setOutcome] = useState<'clear' | 'fail' | 'extinct' | null>(null)
   const [message, setMessage] = useState('')
   const [gameCleared, setGameCleared] = useState(false)
 
@@ -209,6 +209,16 @@ export function EvolutionGame({
           setPopulation((pop) => pop.filter((c) => !toRemove.has(c.id)))
           setDyingIds(new Set())
         }, DEATH_ANIM_MS)
+      } else if (stageIndex === 2) {
+        // 最終ステージで毒に適応した個体が1匹も生まれなかった → 全滅（バッドエンド）
+        const allIds = new Set(population.map((c) => c.id))
+        setDyingIds(allIds)
+        setOutcome('extinct')
+        setPhase('event-result')
+        setTimeout(() => {
+          setPopulation([])
+          setDyingIds(new Set())
+        }, DEATH_ANIM_MS)
       } else {
         setOutcome('fail')
         setPhase('event-result')
@@ -219,6 +229,15 @@ export function EvolutionGame({
   const handleContinueAfterFail = () => {
     setPhase('breeding')
     setOutcome(null)
+  }
+
+  const handleBadEnding = () => {
+    // バッドエンド後は生物のクイズへ合流（スタンドアロン時は最初からやり直し）
+    if (standalone) {
+      restartGame()
+    } else {
+      onCleared?.()
+    }
   }
 
   const handleNextStage = () => {
@@ -338,6 +357,24 @@ export function EvolutionGame({
           <p>{stage.sub}。対象の生き物がまだ少ないようだ。配合を続けて数を増やしてから、もう一度挑戦しよう。</p>
           <button className="secondary-action" style={{ alignSelf: 'flex-end' }} onClick={handleContinueAfterFail}>
             配合を続ける
+          </button>
+        </div>
+      )}
+
+      {outcome === 'extinct' && phase === 'event-result' && (
+        <div className="evo-result extinct">
+          <h4>生き物が絶滅してしまった…</h4>
+          <p>
+            毒に適応できる生き物が一匹も生まれず、群れは魔王の猛毒によって全滅した。
+            しんかの道は、時にこうして途絶える――。
+          </p>
+          <button
+            className="primary-action"
+            style={{ margin: 0, alignSelf: 'flex-end' }}
+            disabled={dyingIds.size > 0}
+            onClick={handleBadEnding}
+          >
+            {standalone ? 'もう一度さいしょから' : 'クイズに進む'} <span>→</span>
           </button>
         </div>
       )}

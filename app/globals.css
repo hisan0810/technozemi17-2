@@ -104,7 +104,10 @@ footer { border-top: 1px solid var(--border); padding: 22px 0; display: flex; ju
 .evo-message { text-align: center; margin-top: 14px; font-size: 13px; color: var(--primary); font-weight: 700; min-height: 20px; }
 
 .evo-result { max-width: 560px; margin: 20px auto 0; padding: 22px 24px; border-left: 4px solid var(--primary); background: var(--soft); display: flex; flex-direction: column; gap: 10px; }
-.evo-result.fail { border-left-color: #b34c3d; }
+  .evo-result.fail { border-left-color: #b34c3d; }
+  .evo-result.extinct { border-left-color: #6b2d2d; background: #2a1414; }
+  .evo-result.extinct h4 { color: #f0c9c0; }
+  .evo-result.extinct p { color: #d7a89f; }
 .evo-result h4 { margin: 0; font-size: 18px; }
 .evo-result p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
 
