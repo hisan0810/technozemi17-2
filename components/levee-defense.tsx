@@ -21,14 +21,18 @@ const CELL_H = 38
 const COLS = 3
 const ROWS = 4
 const GRID_Y = GROUND_Y - ROWS * CELL_H
-// Compatibility alias for older preview bundles.
-const SHORE_X = GRID_X
 const MAX_BUDGET = 100
 const PEAK_WATER = 242
 const blocksCount = COLS * ROWS
 const price = { soil: 3, concrete: 8 }
 
-export function EvolutionGame() {
+export default function LeveeDefense({
+  standalone = false,
+  onComplete,
+}: {
+  standalone?: boolean
+  onComplete?: () => void
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const blocksRef = useRef<(Block | null)[]>(Array(blocksCount).fill(null))
   const frameRef = useRef<number | null>(null)
@@ -36,8 +40,8 @@ export function EvolutionGame() {
   const outcomeRef = useRef<Mode>('build')
   const particlesRef = useRef<Particle[]>([])
   const collapseRef = useRef<number[]>([])
-  const collapseTimerRef = useRef(0)
   const floodProgressRef = useRef(0)
+  const completedRef = useRef(false)
   const [material, setMaterial] = useState<Material>('soil')
   const [mode, setMode] = useState<Mode>('build')
   const [elapsed, setElapsed] = useState(0)
@@ -48,7 +52,7 @@ export function EvolutionGame() {
     const blocks = blocksRef.current.filter(Boolean) as Block[]
     const soil = blocks.filter((b) => b.material === 'soil').length
     const occupiedRows = Array.from({ length: ROWS }, (_, row) => blocksRef.current.slice(row * COLS, (row + 1) * COLS).some(Boolean))
-    const height = occupiedRows.reduce((max, occupied, row) => occupied ? Math.max(max, row + 1) : max, 0)
+    const height = occupiedRows.reduce((max, occupied, row) => (occupied ? Math.max(max, row + 1) : max), 0)
     const completeRows = height > 0 && Array.from({ length: height }, (_, row) => blocksRef.current.slice(row * COLS, (row + 1) * COLS).every(Boolean)).every(Boolean)
     const strength = blocks.reduce((sum, b) => sum + (b.material === 'concrete' ? 13 : 6), 0)
     return { blocks, soil, height, completeRows, strength, soilRatio: blocks.length ? soil / blocks.length : 0 }
@@ -58,8 +62,8 @@ export function EvolutionGame() {
     blocksRef.current = Array(blocksCount).fill(null)
     particlesRef.current = []
     collapseRef.current = []
-    collapseTimerRef.current = 0
     floodProgressRef.current = 0
+    completedRef.current = false
     outcomeRef.current = 'build'
     setMode('build'); setElapsed(0); setBudget(0); setToast('')
   }, [])
@@ -76,7 +80,6 @@ export function EvolutionGame() {
     if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return
     const index = row * COLS + col
     if (blocksRef.current[index]) return
-    // A block must sit on the ground or directly on another block.
     if (row > 0 && !blocksRef.current[(row - 1) * COLS + col]) {
       setToast('下のマスから順に積み上げてください。')
       window.setTimeout(() => setToast(''), 1800)
@@ -106,10 +109,8 @@ export function EvolutionGame() {
     const draw = (now: number) => {
       const current = outcomeRef.current
       ctx.clearRect(0, 0, W, H)
-      // drawBackground: a strict shoreline split — water occupies only the left 30%.
       ctx.fillStyle = '#d8c9a7'; ctx.fillRect(0, 0, W, H)
       ctx.fillStyle = '#dff0d8'; ctx.fillRect(0, 0, W, H)
-      // drawWater: the river is full before rain; rain only moves its surface upward.
       ctx.fillStyle = '#78b9c7'; ctx.fillRect(WATER_X, INITIAL_WATER_Y, WATER_W, H - INITIAL_WATER_Y)
       ctx.fillStyle = '#5ca1b2'; ctx.fillRect(WATER_X, INITIAL_WATER_Y + 42, WATER_W, H - INITIAL_WATER_Y - 42)
       ctx.strokeStyle = '#537155'; ctx.lineWidth = 3
@@ -126,12 +127,10 @@ export function EvolutionGame() {
       for (let row = 0; row < ROWS; row++) for (let col = 0; col < COLS; col++) { const b = blocksRef.current[row * COLS + col]; const x = GRID_X + col * CELL_W; const y = GROUND_Y - (row + 1) * CELL_H; ctx.strokeStyle = 'rgba(115,96,65,.35)'; ctx.strokeRect(x, y, CELL_W, CELL_H); if (b) { ctx.fillStyle = b.material === 'concrete' ? '#667984' : '#a47943'; ctx.fillRect(x, y, CELL_W, CELL_H); ctx.fillStyle = b.material === 'concrete' ? '#b8c4c9' : '#c59654'; ctx.fillRect(x + 8, y + 8, 8, 6) } }
       if (current === 'rain' || current === 'failed' || current === 'won') {
         const rainMs = now - rainStartRef.current
-        const seconds = Math.min(10, rainMs / 1000)
-        const targetWaterLevel = GROUND_Y - 110 // four-second flood target
+        const targetWaterLevel = GROUND_Y - 110
         const waterY = current === 'won' ? INITIAL_WATER_Y : INITIAL_WATER_Y - Math.min(1, rainMs / 4000) * (INITIAL_WATER_Y - targetWaterLevel)
         const water = H - waterY
         const reachesGround = waterY <= GROUND_Y
-        // drawWater: surface rises from INITIAL_WATER_Y, never from underground.
         ctx.fillStyle = 'rgba(35,79,103,.84)'; ctx.fillRect(WATER_X, waterY, WATER_W, H - waterY)
         const leveeBlocks = blocksRef.current.filter(Boolean).length
         const leveeHeight = leveeBlocks ? Math.max(CELL_H, Math.min(ROWS * CELL_H, Math.ceil(leveeBlocks / COLS) * CELL_H)) : 0
@@ -145,8 +144,10 @@ export function EvolutionGame() {
       }
       particlesRef.current.forEach((p) => { p.x += p.vx; p.y += p.vy; p.vy += .04; p.life -= .012; ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fillRect(p.x, p.y, 5, 5); ctx.globalAlpha = 1 })
       particlesRef.current = particlesRef.current.filter((p) => p.life > 0)
-      if (current === 'rain') { const seconds = Math.floor((now - rainStartRef.current) / 1000); setElapsed(seconds); const s = stats(); const low = s.height <= 2; const thin = !s.completeRows; const soilFail = s.soilRatio >= .6
-        const targetWaterLevel = GROUND_Y - 110 // four-second flood target
+      if (current === 'rain') {
+        const seconds = Math.floor((now - rainStartRef.current) / 1000); setElapsed(seconds)
+        const s = stats(); const low = s.height <= 2; const thin = !s.completeRows; const soilFail = s.soilRatio >= .6
+        const targetWaterLevel = GROUND_Y - 110
         const waterReachedGround = INITIAL_WATER_Y - Math.min(1, (now - rainStartRef.current) / 4000) * (INITIAL_WATER_Y - targetWaterLevel) <= GROUND_Y
         if (waterReachedGround && !collapseRef.current.length) {
           if (soilFail) { blocksRef.current = Array(blocksCount).fill(null); outcomeRef.current = 'failed'; setMode('failed'); setToast('失敗！土砂が多すぎて堤防が崩れました。') }
@@ -161,7 +162,59 @@ export function EvolutionGame() {
     return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current) }
   }, [stats])
 
+  // 成功したら少し余韻を見せてからクイズへ合流する。
+  useEffect(() => {
+    if (mode !== 'won' || completedRef.current) return
+    completedRef.current = true
+    if (standalone) return
+    const timer = setTimeout(() => onComplete?.(), 2400)
+    return () => clearTimeout(timer)
+  }, [mode, standalone, onComplete])
+
   const s = stats()
   const label = mode === 'build' ? '建設準備中' : mode === 'rain' ? '大雨が接近中' : mode === 'won' ? '防衛成功' : '堤防が決壊'
-  return <main className="levee-app"><header className="levee-header"><div className="levee-brand"><span className="brand-mark"><Waves size={19} /></span><div><strong>まちをまもれ！</strong><small>LEVEE DEFENSE / FIELD 01</small></div></div><button className="reset-link" onClick={reset}><RotateCcw size={15} /> 最初から</button></header><div className="levee-shell"><section className="levee-intro"><div><p className="eyebrow">HAND-ON DISASTER PREVENTION LAB</p><h1>水のちからを、<br /><em>堤防で受け止めろ。</em></h1><p>材料を選び、建設ゾーンをクリックして配置します。<br />10秒間、川沿いの町を守り抜こう。</p></div><div className="goal-card"><ShieldCheck size={22} /><span>MISSION</span><strong>10秒間、町を守る</strong></div></section><div className="sim-grid"><aside className="control-panel"><div className="panel-title"><Hammer size={18} /><span>建設コントロール</span></div><div className="status-box"><span>STATUS</span><strong className={mode}>{label}</strong><small>{mode === 'rain' ? `${elapsed} / 10 秒` : '建設ゾーンに配置してください'}</small></div><p className="control-label">材料を選ぶ</p><button className={`material ${material === 'soil' ? 'selected' : ''}`} onClick={() => setMaterial('soil')}><span className="material-swatch soil" /><span><b>土砂パーツ</b><small>安価 / 強度 +6</small></span><strong>¥3</strong></button><button className={`material ${material === 'concrete' ? 'selected' : ''}`} onClick={() => setMaterial('concrete')}><span className="material-swatch concrete" /><span><b>コンクリート</b><small>頑丈 / 強度 +13</small></span><strong>¥8</strong></button><div className="readouts"><div><small>予算</small><b className={toast === '予算オーバーです！' ? 'danger-text' : ''}>¥{budget} <i>/ ¥100</i></b></div><div><small>堤防の強度</small><b>{s.strength} <i>/ 50</i></b></div></div><div className="meter"><span style={{ width: `${Math.min(100, s.strength * 2)}%` }} /></div>{toast === '予算オーバーです！' && <p className="budget-toast">{toast}</p>}<button className="rain-button" disabled={mode !== 'build' || budget > MAX_BUDGET || !s.blocks.length} onClick={startRain}><CloudRain size={17} /> 大雨スタート</button><button className="clear-button" disabled={mode !== 'build'} onClick={reset}>堤防をリセット</button></aside><section className="stage-panel"><div className="stage-toolbar"><span><Waves size={15} /> CROSS-SECTION / SIDE VIEW</span><small>左：水の流れ　｜　中央：建設ゾーン　｜　右：町</small></div><canvas ref={canvasRef} width={W} height={H} onPointerDown={place} aria-label="川と町の断面図。中央の建設ゾーンをクリックして堤防を作ります。" /><div className="stage-note"><span>TIP</span> コンクリートを混ぜると、堤防が崩れにくくなります。</div>{toast && toast !== '予算オーバーです！' && <div className={`result ${mode === 'failed' ? 'failure' : ''}`}>{mode === 'failed' ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}<div><strong>{toast}</strong><span>{mode === 'failed' ? 'リセットして、設計を見直してみよう。' : '町のみんなが喜んでいます。'}</span></div><button onClick={reset}>もう一度</button></div>}</section></div></div></main>
+  return (
+    <div className="levee-app">
+      <header className="levee-header">
+        <div className="levee-brand"><span className="brand-mark"><Waves size={19} /></span><div><strong>洪水から街を守れ！</strong><small>LEVEE DEFENSE / FIELD 01</small></div></div>
+        <button className="reset-link" onClick={reset}><RotateCcw size={15} /> 最初から</button>
+      </header>
+      <div className="levee-shell">
+        <section className="levee-intro">
+          <div>
+            <p className="eyebrow">HANDS-ON DISASTER PREVENTION LAB</p>
+            <h1>水のちからを、<br /><em>堤防で受け止めろ。</em></h1>
+            <p>材料を選び、建設ゾーンをクリックして配置します。<br />押し寄せる大雨から、川沿いの町を守り抜こう。</p>
+          </div>
+          <div className="goal-card"><ShieldCheck size={22} /><span>MISSION</span><strong>あふれる前に町を守る</strong></div>
+        </section>
+        <div className="sim-grid">
+          <aside className="control-panel">
+            <div className="panel-title"><Hammer size={18} /><span>建設コントロール</span></div>
+            <div className="status-box"><span>STATUS</span><strong className={mode}>{label}</strong><small>{mode === 'rain' ? `${elapsed} 秒経過` : '建設ゾーンに配置してください'}</small></div>
+            <p className="control-label">材料を選ぶ</p>
+            <button className={`material ${material === 'soil' ? 'selected' : ''}`} onClick={() => setMaterial('soil')}><span className="material-swatch soil" /><span><b>土砂パーツ</b><small>安価 / 強度 +6</small></span><strong>¥3</strong></button>
+            <button className={`material ${material === 'concrete' ? 'selected' : ''}`} onClick={() => setMaterial('concrete')}><span className="material-swatch concrete" /><span><b>コンクリート</b><small>頑丈 / 強度 +13</small></span><strong>¥8</strong></button>
+            <div className="readouts"><div><small>予算</small><b className={toast === '予算オーバーです！' ? 'danger-text' : ''}>¥{budget} <i>/ ¥100</i></b></div><div><small>堤防の強度</small><b>{s.strength} <i>/ 50</i></b></div></div>
+            <div className="meter"><span style={{ width: `${Math.min(100, s.strength * 2)}%` }} /></div>
+            {toast === '予算オーバーです！' && <p className="budget-toast">{toast}</p>}
+            <button className="rain-button" disabled={mode !== 'build' || budget > MAX_BUDGET || !s.blocks.length} onClick={startRain}><CloudRain size={17} /> 大雨スタート</button>
+            <button className="clear-button" disabled={mode !== 'build'} onClick={reset}>堤防をリセット</button>
+          </aside>
+          <section className="stage-panel">
+            <div className="stage-toolbar"><span><Waves size={15} /> CROSS-SECTION / SIDE VIEW</span><small>左：水の流れ　｜　中央：建設ゾーン　｜　右：町</small></div>
+            <canvas ref={canvasRef} width={W} height={H} onPointerDown={place} aria-label="川と町の断面図。中央の建設ゾーンをクリックして堤防を作ります。" />
+            <div className="stage-note"><span>TIP</span> コンクリートを混ぜると、堤防が崩れにくくなります。</div>
+            {toast && toast !== '予算オーバーです！' && (
+              <div className={`result ${mode === 'failed' ? 'failure' : ''}`}>
+                {mode === 'failed' ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
+                <div><strong>{toast}</strong><span>{mode === 'failed' ? 'リセットして、設計を見直してみよう。' : standalone ? '町のみんなが喜んでいます。' : 'このあと、まなびのクイズに進みます。'}</span></div>
+                <button onClick={reset}>もう一度</button>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  )
 }
