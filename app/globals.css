@@ -165,3 +165,57 @@ footer { border-top: 1px solid var(--border); padding: 22px 0; display: flex; ju
 .evo-embedded-clear p { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 0 0 24px; }
 
 @media (max-width: 700px) { .creature-pond { max-height: 300px; } .evo-victory { padding: 60px 18px; } .evo-victory h1 { font-size: 30px; } }
+
+/* --- LEVEE DEFENSE (civil route embedded) --- */
+.levee-app { border: 1px solid var(--border); background: var(--card); }
+.levee-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.levee-brand { display: flex; align-items: center; gap: 12px; }
+.levee-brand .brand-mark { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: var(--primary); color: #fffefa; }
+.levee-brand strong { display: block; font-size: 15px; }
+.levee-brand small { display: block; color: var(--muted); font-size: 10px; letter-spacing: .1em; margin-top: 3px; }
+.levee-shell { padding: 22px 20px 24px; }
+.levee-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+.levee-intro h1 { font-size: clamp(24px, 3vw, 34px); line-height: 1.16; letter-spacing: -.04em; margin: 6px 0 12px; font-weight: 800; }
+.levee-intro h1 em { font-style: normal; color: var(--primary); }
+.levee-intro p:last-child { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 0; }
+.goal-card { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 20px; background: var(--soft); color: var(--primary); text-align: center; }
+.goal-card span { font-size: 9px; letter-spacing: .16em; font-weight: 800; color: var(--accent); }
+.goal-card strong { font-size: 13px; }
+.sim-grid { display: grid; grid-template-columns: 250px 1fr; gap: 18px; align-items: start; }
+.control-panel { display: flex; flex-direction: column; gap: 12px; padding: 18px; background: var(--background); border: 1px solid var(--border); }
+.panel-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--primary); }
+.status-box { display: flex; flex-direction: column; gap: 2px; padding: 12px; background: var(--card); border: 1px solid var(--border); }
+.status-box span { font-size: 9px; letter-spacing: .14em; color: var(--accent); font-weight: 800; }
+.status-box strong { font-size: 15px; }
+.status-box strong.won { color: var(--primary); } .status-box strong.failed { color: #b34c3d; } .status-box strong.rain { color: var(--accent); }
+.status-box small { color: var(--muted); font-size: 11px; }
+.control-label { font-size: 11px; font-weight: 700; margin: 4px 0 0; }
+.material { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); text-align: left; }
+.material.selected { border-color: var(--primary); background: var(--soft); }
+.material b { font-size: 13px; } .material small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+.material span:not(.material-swatch) { flex: 1; }
+.material strong { color: var(--primary); font-size: 13px; }
+.material-swatch { width: 22px; height: 22px; flex-shrink: 0; border: 1px solid rgba(0,0,0,.1); }
+.material-swatch.soil { background: #a47943; } .material-swatch.concrete { background: #667984; }
+.readouts { display: flex; gap: 10px; }
+.readouts div { flex: 1; padding: 10px; background: var(--card); border: 1px solid var(--border); }
+.readouts small { display: block; color: var(--muted); font-size: 10px; }
+.readouts b { font-size: 15px; } .readouts b i { font-style: normal; color: var(--muted); font-size: 11px; }
+.readouts b.danger-text { color: #b34c3d; }
+.meter { height: 6px; background: var(--soft); } .meter span { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+.budget-toast { color: #b34c3d; font-size: 11px; margin: 0; }
+.rain-button { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border: 0; background: var(--primary); color: #fffefa; font-weight: 700; font-size: 13px; }
+.clear-button { padding: 10px; border: 1px solid var(--border); background: var(--card); font-size: 12px; }
+.stage-panel { display: flex; flex-direction: column; gap: 10px; }
+.stage-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stage-toolbar span { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--primary); }
+.stage-toolbar small { color: var(--muted); font-size: 10px; }
+.stage-panel canvas { width: 100%; height: auto; display: block; border: 1px solid var(--border); background: #dff0d8; touch-action: none; }
+.stage-note { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; } .stage-note span { color: var(--accent); font-weight: 800; }
+.result { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--soft); border-left: 4px solid var(--primary); }
+.result.failure { border-left-color: #b34c3d; background: #f6e7e3; }
+.result svg { color: var(--primary); flex-shrink: 0; } .result.failure svg { color: #b34c3d; }
+.result strong { display: block; font-size: 13px; } .result span { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.result div { flex: 1; }
+.result button { padding: 9px 14px; border: 1px solid var(--border); background: var(--card); font-size: 12px; }
+@media (max-width: 760px) { .sim-grid { grid-template-columns: 1fr; } .levee-intro { flex-direction: column; align-items: flex-start; } }

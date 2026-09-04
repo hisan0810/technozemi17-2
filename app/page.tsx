@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
 import CodeRunner from '@/components/code-runner'
+import LeveeDefense from '@/components/levee-defense'
 
 type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物' | '化学'
 type Step = 0 | 1 | 2 | 3 | 4
@@ -72,8 +73,7 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     name: '土木',
     note: '強く、美しい構造をつくる',
     topics: [
-      { name: 'パスタブリッジ', quiz: { q: '橋に上から力がかかるとき、下向きの力とつり合う上向きの力はなんと呼ばれますか？', options: ['反力', '摩擦力', 'ジュール熱'], answer: 0 } },
-      { name: 'ミニ地盤モデル', quiz: { q: '地盤の強さを決める主な要因は、土の「（　）」と「含水量」です。', options: ['密度', '色', '温度'], answer: 0 } },
+      { name: '洪水から街を守れ！', quiz: { q: '幅3m・高さ2mの堤防の断面積は何m²ですか？（面積 = 幅 × 高さ）', options: ['6 m²', '5 m²', '1.5 m²'], answer: 0 } },
     ],
     mark: '04',
     advanced: '建造物耐震設計',
@@ -454,6 +454,8 @@ function ExperienceQuizStep({
           <CircuitBuilder onComplete={() => setBuildingComplete(true)} />
         ) : field === '化学' && topic === '色が変わる水溶液' ? (
           <MixLab onComplete={() => setBuildingComplete(true)} />
+        ) : field === '土木' && topic === '洪水から街を守れ！' ? (
+          <LeveeDefense standalone={false} onComplete={() => setBuildingComplete(true)} />
         ) : (
           <div className="experience-box">
             <div className="build-section">
