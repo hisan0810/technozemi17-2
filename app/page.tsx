@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { EvolutionGame } from '@/components/evolution-game'
 import CodeRunner from '@/components/code-runner'
 import LeveeDefense from '@/components/levee-defense'
+import RobotArmLab from '@/components/robot-arm-lab'
+import EarthquakeLayout from '@/components/earthquake-layout'
 
 type Field = '機械' | '情報' | '電気電子' | '土木' | '建築' | '生物' | '化学'
 type Step = 0 | 1 | 2 | 3 | 4
@@ -47,6 +49,14 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
     topics: [
       { name: 'ホバークラフト', quiz: { q: 'ホバークラフトが浮くのは、空気の「（　）」を高めているからです。', options: ['圧力', '温度', '速度'], answer: 0 } },
       { name: 'ゴム動力ミニカー', quiz: { q: '大きな歯車と小さな歯車の回転数の関係を表す「歯車比」は、数学のどの単元に関係しますか？', options: ['比例・反比例', '確率', '関数'], answer: 0 } },
+      {
+        name: 'ロボットアームで爆弾を運べ！',
+        quiz: {
+          q: 'アームが長いほど支点から力点までの距離が伸び、同じ力でも重い物を持ち上げにくくなります。この関係を説明する理科の原理は？',
+          options: ['てこの原理', 'オームの法則', '浮力の原理'],
+          answer: 0,
+        },
+      },
     ],
     mark: '01',
     advanced: '水圧ロボットアーム',
@@ -88,6 +98,14 @@ const fields: { name: Field; note: string; topics: { name: string; quiz: { q: st
       { name: 'ミニコンクリート', quiz: { q: 'コンクリートの強度は、「セメント」「砂」「石」の混合比で変わります。これは何の学習に近いですか？', options: ['化学反応', '物理変化', 'エネルギー'], answer: 0 } },
       { name: '紙の高層ビル', quiz: { q: '紙でビルを建てるとき、最も工夫が必要な部分は？', options: ['柱の設計（構造）', '壁の色', '窓の配置'], answer: 0 } },
       { name: '暑くならない家', quiz: { q: '夏に家を涼しく保つための重要な工夫は？', options: ['通風と遮光', 'ペンキの色', '家の大きさ'], answer: 0 } },
+      {
+        name: '絶対に倒れない間取りをつくれ！',
+        quiz: {
+          q: '四方のうち3方向だけに耐震壁があっても安定した建物になるのは、建物全体の何が重要だからですか？',
+          options: ['重心と荷重のバランス', '窓の数の多さ', '壁の色の統一感'],
+          answer: 0,
+        },
+      },
     ],
     mark: '05',
     advanced: 'スマートビル設計',
@@ -456,6 +474,10 @@ function ExperienceQuizStep({
           <MixLab onComplete={() => setBuildingComplete(true)} />
         ) : field === '土木' && topic === '洪水から街を守れ！' ? (
           <LeveeDefense standalone={false} onComplete={() => setBuildingComplete(true)} />
+        ) : field === '機械' && topic === 'ロボットアームで爆弾を運べ！' ? (
+          <RobotArmLab standalone={false} onComplete={() => setBuildingComplete(true)} />
+        ) : field === '建築' && topic === '絶対に倒れない間取りをつくれ！' ? (
+          <EarthquakeLayout standalone={false} onComplete={() => setBuildingComplete(true)} />
         ) : (
           <div className="experience-box">
             <div className="build-section">
